@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('username')->unique();
+            $table->longText('img')->nullable();
             $table->integer('role_id')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
@@ -37,6 +38,16 @@ return new class extends Migration
             $table->longText('payload');
             $table->integer('last_activity')->index();
         });
+
+        DB::table('users')->insert([
+            'name' => 'Admin',
+            'email' => 'admin@admin.com',
+            'username' => 'admin',
+            'role_id' => 1,
+            'password' => Hash::make('admin123'),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
     /**

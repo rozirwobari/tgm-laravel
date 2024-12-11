@@ -3,13 +3,12 @@
 @section('content')
     <div class="rzw-box-profile">
         <div class="card-body">
-            <img src="https://rozirwobari.my.id/assets/img/rzw.png" alt="Login Icon" class="rzw-profile-img">
-            {{-- <img src="{{ asset($user['img']) }}" alt="Login Icon" class="rzw-profile-img"> --}}
+            <img src="{{ asset(Auth::user()->img ?? 'asset/img/profile.png') }}" alt="Login Icon" class="rzw-profile-img">
             <p style="font-weight: 400; padding-top: 10px;">Hallo, {{ Auth::user()->name }}</p>
-            <a href="{{ url('dashboard/profile') }}" class="btn btn-primary w-100 rzw-btn" style="background-color: #0049ff; color: #fff;">Edit Profile</a>
-            <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="btn btn-primary w-100 rzw-btn">Keluar</a>
-            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+            <a href="{{ url('profile') }}" class="btn btn-primary w-100 rzw-btn" style="background-color: #0049ff; color: #fff;">Edit Profile</a>
+            <form id="logout-form" action="{{ route('logout') }}" method="POST">
                 @csrf
+                <button type="submit" class="btn btn-primary w-100 rzw-btn">Keluar</button>
             </form>
         </div>
     </div>
