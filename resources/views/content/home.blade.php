@@ -16,7 +16,7 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-6">
-                    <a href="{{ url('dashboard/qc_air_botol') }}" class="btn btn-primary w-100 rzw-btn-content">QC
+                    <a href="{{ url('qc_air_baku') }}" class="btn btn-primary w-100 rzw-btn-content">QC
                         Air Botol</a>
                 </div>
                 <div class="col-6">

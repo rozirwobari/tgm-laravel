@@ -1,10 +1,14 @@
+@php
+    use App\Helpers\RZWHelper;
+    $decode_qc = json_decode($details->data);
+@endphp
 @extends('layout')
 
 @section('content')
 <div class="rzw-container" style="display: flex;">
     <div class="rzw-box-content" style="flex: 0 0 15%; padding: 1px; border-radius: 10px 0 0 10px;">
-        <a href="<?= base_url('/dashboard/qc_air_baku') ?>">
-            <h5 style="font-weight: 600; padding-top: 11%;">
+        <a href="{{ url('/qc_air_baku') }}">
+            <h5 style="font-weight: 600; padding-top: 0.9vh;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                     class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-left">
@@ -101,105 +105,92 @@
 
 <div class="rzw-box-content">
     <div class="card-body">
-        <?php 
-            $dates = json_decode($details['date']);
-            $update_dates = json_decode($details['update_date']);
-            $decode_qc = json_decode($details['data'])->data;
-        ?>
         <div class="container text-start">
             <h3 class="text-center">Detail Petugas</h3>
             <div style="display: flex; flex-direction: row;">
-                <p style="margin-right: 3px;">Tanggal & Waktu : <span class="p-2"
-                        style="font-weight: 600;"><?= $dates->label ?></span></p>
+                <p style="margin-right: 3px;">Tanggal & Waktu : <span class="p-2"style="font-weight: 600;">{{ RZWHelper::formatTanggalIndonesia($details->created_at) }}</span></p>
             </div>
-            <?php if (!empty($update_dates)) : ?>
-                <div style="display: flex; flex-direction: row;">
-                    <p style="margin-right: 3px;">Tanggal & Waktu Di Update : <span class="p-2"
-                            style="font-weight: 600;"><?= $update_dates->label ?></span></p>
-                </div>
-            <?php endif; ?>
+            <div style="display: flex; flex-direction: row;">
+                <p style="margin-right: 3px;">Tanggal & Waktu Di Update : <span class="p-2" style="font-weight: 600;">{{ RZWHelper::formatTanggalIndonesia($details->updated_at) }}</span></p>
+            </div>
             <div style="display: flex; flex-direction: row;">
                 <p style="margin-right: 3px;">Petugas : <span class="p-2"
-                        style="font-weight: 600;"><?= $data_user['nama'] ?></span></p>
+                    style="font-weight: 600;">{{ Auth::user()->name }}</span></p>
             </div>
             <div style="display: flex; flex-direction: row;">
-                <p style="margin-right: 3px;">Status : <span class="p-2" style="font-weight: 600; color: <?= $status == 0 ? '#c6a200' : ($status == 1 ? 'green' : 'red') ?>;"><?= $status == 0 ? 'Pending' : ($status == 1 ? 'Approve' : 'Reject') ?></span></p>
+                <p style="margin-right: 3px;">Status : <span class="p-2" style="font-weight: 600; color: {{ $details->status == 0 ? '#c6a200' : ($details->status == 1 ? 'green' : 'red') }};">{{ $details->status == 0 ? 'Pending' : ($details->status == 1 ? 'Approve' : 'Reject') }}</span></p>
             </div>
-            <!-- <div style="display: flex; flex-direction: row;">
-                <p style="margin-right: 3px;">Shift/Lokasi : <span class="p-2" style="font-weight: 600;"><?= $data_user['nama'] ?></span></p>
-            </div> -->
-        </div>
-    </div>
-</div>
-<form action="<?= base_url('/dashboard/qc_air_baku/update/'.$id) ?>" method="post">
-
-<div class="rzw-box-content">
-        <div class="card-body">
-            <div class="container text-center">
-                <h3>Shift</h3>
-            </div>
-            <div class="input-group my-3">
-                <select class="form-control rzw-input <?= session('input.shift') ? 'is-invalid' : '' ?>"
-                    name="shift" id="shift" <?= $status == 0 && $details['user_id'] == $data_user['user_id'] && $data_user['name'] != 'viewers' ? '' : 'readonly' ?>>
-                    <option value="">Pilih Shift</option>
-                    <option value="Sumber 1" <?= $details['shift'] == 'Sumber 1' ? 'selected' : '' ?> >Sumber 1</option>
-                    <option value="Sumber 2" <?= $details['shift'] == 'Sumber 2' ? 'selected' : '' ?> >Sumber 2</option>
-                    <option value="Sumber 3" <?= $details['shift'] == 'Sumber 3' ? 'selected' : '' ?> >Sumber 3</option>
-                    <option value="Tangki" <?= $details['shift'] == 'Tangki' ? 'selected' : '' ?> >Tangki</option>
-                    <option value="WT" <?= $details['shift'] == 'WT' ? 'selected' : '' ?> >WT</option>
-                </select>
-                <div class="input-group-prepend">
-                    <span class="rzw-icon-input" style="z-index: 5;">
-                        <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-cursor-text"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 12h4" /><path d="M9 4a3 3 0 0 1 3 3v10a3 3 0 0 1 -3 3" /><path d="M15 4a3 3 0 0 0 -3 3v10a3 3 0 0 0 3 3" /></svg>
-                    </span>
-                </div>
-                <div id="validationServerUsernameFeedback" class="invalid-feedback text-start">
-                    <?= session('input.shift') ?>
-                </div>
+            <div style="display: flex; flex-direction: row;">
+                <p style="margin-right: 3px;">Shift/Lokasi : <span class="p-2" style="font-weight: 600;">{{ $details->shift }}</span></p>
             </div>
         </div>
     </div>
-
-<div class="rzw-box-content" style="padding: 0px; margin-top: 15px;">
-    <p class="p-2" style="font-weight: 600;">FISIKOKIMIA</p>
 </div>
+<form action="{{ url('/qc_air_baku/edit/'.$details->id) }}" method="POST">
+    @csrf
+    <div class="rzw-box-content">
+            <div class="card-body">
+                <div class="container text-center">
+                    <h3>Shift</h3>
+                </div>
+                <div class="input-group my-3">
+                    <select class="form-control rzw-input {{ session('input.shift') ? 'is-invalid' : '' }}"
+                        name="shift" id="shift" {{ $details->status == 0 && $details->user_id == Auth::user()->id && Auth::user()->role->name != 'viewers' ? '' : 'readonly' }}>
+                        <option value="">Pilih Shift</option>
+                        <option value="Sumber 1" {{ $details->shift == 'Sumber 1' ? 'selected' : '' }} >Sumber 1</option>
+                        <option value="Sumber 2" {{ $details->shift == 'Sumber 2' ? 'selected' : '' }} >Sumber 2</option>
+                        <option value="Sumber 3" {{ $details->shift == 'Sumber 3' ? 'selected' : '' }} >Sumber 3</option>
+                        <option value="Tangki" {{ $details->shift == 'Tangki' ? 'selected' : '' }} >Tangki</option>
+                        <option value="WT" {{ $details->shift == 'WT' ? 'selected' : '' }} >WT</option>
+                    </select>
+                    <div class="input-group-prepend">
+                        <span class="rzw-icon-input" style="z-index: 5;">
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-cursor-text"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 12h4" /><path d="M9 4a3 3 0 0 1 3 3v10a3 3 0 0 1 -3 3" /><path d="M15 4a3 3 0 0 0 -3 3v10a3 3 0 0 0 3 3" /></svg>
+                        </span>
+                    </div>
+                    <div id="validationServerUsernameFeedback" class="invalid-feedback text-start">
+                        @error('shift')
+                            {{ $message }}
+                        @enderror
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <div class="rzw-box-content" style="padding: 0px; margin-top: 15px;">
+        <p class="p-2" style="font-weight: 600;">FISIKOKIMIA</p>
+    </div>
 
     <div class="rzw-box-content">
         <div class="card-body">
             <div class="container text-center">
                 <h3>TDS</h3>
             </div>
-            <?php
-                for ($i=1; $i <= 5; $i++) { 
-                    $data = $decode_qc->fisikokimia[($i - 1)]->tds;
-                    if($data == null) $data = '';
-            ?>
-            <div class="input-group my-3">
-                <input type="text"
-                    class="form-control rzw-input <?= session('input.tds_input_'.$i) ? 'is-invalid' : '' ?>"
-                    name="tds_input_<?= $i ?>" id="tds_input_<?= $i ?>" placeholder="Value <?= $i ?>"
-                    value="<?= $data ?>"
-                    style="background-color: <?= $data == null ? 'white' : ($data >= 0 && $data <= 130 ? 'green' : ($data > 130 && $data <= 150 ? '#ecd700' : '#ff0000')) ?>; color: <?= $data == null ? 'black' : ($data >= 0 && $data <= 130 ? 'white' : ($data > 130 && $data <= 150 ? 'black' : 'white')) ?>;"
-                    <?= $status == 0 && $details['user_id'] == $data_user['user_id'] && $data_user['name'] != 'viewers' ? '' : 'readonly' ?>>
-                <div class="input-group-prepend">
-                    <span class="rzw-icon-input" style="z-index: 5;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="icon icon-tabler icons-tabler-outline icon-tabler-cursor-text">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                            <path d="M10 12h4" />
-                            <path d="M9 4a3 3 0 0 1 3 3v10a3 3 0 0 1 -3 3" />
-                            <path d="M15 4a3 3 0 0 0 -3 3v10a3 3 0 0 0 3 3" />
-                        </svg>
-                    </span>
+            @php
+                $i = 1;
+            @endphp
+            @foreach (RZWHelper::FilterName($decode_qc, 'tds_input_') as $key => $item)
+                <div class="input-group my-3">
+                    <input type="text"
+                        class="form-control rzw-input"
+                        name="{{ $key }}" id="{{ $key }}" placeholder="Value {{ $i++ }}"
+                        value="{{ $item }}"
+                        style="background-color: {{ $item == null ? 'white' : ($item >= 0 && $item <= 130 ? 'green' : ($item > 130 && $item <= 150 ? '#ecd700' : '#ff0000')) }}; color: {{ $item == null ? 'black' : ($item >= 0 && $item <= 130 ? 'white' : ($item > 130 && $item <= 150 ? 'black' : 'white')) }};"
+                        {{ $details->status == 0 && $details->user_id == Auth::user()->id && Auth::user()->role->name != 'viewers' ? '' : 'readonly' }} >
+                    <div class="input-group-prepend">
+                        <span class="rzw-icon-input" style="z-index: 5;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                class="icon icon-tabler icons-tabler-outline icon-tabler-cursor-text">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                <path d="M10 12h4" />
+                                <path d="M9 4a3 3 0 0 1 3 3v10a3 3 0 0 1 -3 3" />
+                                <path d="M15 4a3 3 0 0 0 -3 3v10a3 3 0 0 0 3 3" />
+                            </svg>
+                        </span>
+                    </div>
                 </div>
-                <div id="validationServerUsernameFeedback" class="invalid-feedback text-start">
-                    <?= session('input.tds_input_'.$i) ?>
-                </div>
-            </div>
-            <?php
-                }
-            ?>
+            @endforeach
         </div>
     </div>
 
@@ -208,37 +199,31 @@
             <div class="container text-center">
                 <h3>PH</h3>
             </div>
-            <?php
-                for ($i=1; $i <= 5; $i++) { 
-                    $data = $decode_qc->fisikokimia[($i - 1)]->ph;
-                    if($data == null) $data = '';
-            ?>
-            <div class="input-group my-3">
-                <input type="text"
-                    class="form-control rzw-input <?= session('input.ph_input_'.$i) ? 'is-invalid' : '' ?>"
-                    name="ph_input_<?= $i ?>" id="ph_input_<?= $i ?>" placeholder="Value <?= $i ?>"
-                    value="<?= $data ?>"
-                    style="background-color: <?= $data == null ? 'white' : ($data >= 6.5 && $data <= 7.5 ? 'green' : ($data > 7.5 && $data <= 8.5 ? '#ecd700' : '#ff0000')) ?>; color: <?= $data == null ? 'black' : ($data >= 6.5 && $data <= 7.5 ? 'white' : ($data > 7.5 && $data <= 8.5 ? 'black' : 'white')) ?>;"
-                    <?= $status == 0 && $details['user_id'] == $data_user['user_id'] && $data_user['name'] != 'viewers' ? '' : 'readonly' ?>>
-                <div class="input-group-prepend">
-                    <span class="rzw-icon-input" style="z-index: 5;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="icon icon-tabler icons-tabler-outline icon-tabler-cursor-text">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                            <path d="M10 12h4" />
-                            <path d="M9 4a3 3 0 0 1 3 3v10a3 3 0 0 1 -3 3" />
-                            <path d="M15 4a3 3 0 0 0 -3 3v10a3 3 0 0 0 3 3" />
-                        </svg>
-                    </span>
+            @php
+                $i = 1;
+            @endphp
+            @foreach (RZWHelper::FilterName($decode_qc, 'ph_input_') as $key => $item)
+                <div class="input-group my-3">
+                    <input type="text"
+                        class="form-control rzw-input"
+                        name="{{ $key }}" id="{{ $key }}" placeholder="Value {{ $i++ }}"
+                        value="{{ $item }}"
+                        style="background-color: {{ $item == null ? 'white' : ($item >= 6.5 && $item <= 7.5 ? 'green' : ($item > 7.5 && $item <= 8.5 ? '#ecd700' : '#ff0000')) }}; color: {{ $item == null ? 'black' : ($item >= 6.5 && $item <= 7.5 ? 'white' : ($item > 7.5 && $item <= 8.5 ? 'black' : 'white')) }};"
+                        {{ $details->status == 0 && $details->user_id == Auth::user()->id && Auth::user()->role->name != 'viewers' ? '' : 'readonly' }} >
+                    <div class="input-group-prepend">
+                        <span class="rzw-icon-input" style="z-index: 5;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                class="icon icon-tabler icons-tabler-outline icon-tabler-cursor-text">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                <path d="M10 12h4" />
+                                <path d="M9 4a3 3 0 0 1 3 3v10a3 3 0 0 1 -3 3" />
+                                <path d="M15 4a3 3 0 0 0 -3 3v10a3 3 0 0 0 3 3" />
+                            </svg>
+                        </span>
+                    </div>
                 </div>
-                <div id="validationServerUsernameFeedback" class="invalid-feedback text-start">
-                    <?= session('input.ph_input_'.$i) ?>
-                </div>
-            </div>
-            <?php
-                }
-            ?>
+            @endforeach
         </div>
     </div>
 
@@ -247,36 +232,31 @@
             <div class="container text-center">
                 <h3>KERUHAN</h3>
             </div>
-            <?php
-                for ($i=1; $i <= 5; $i++) { 
-                    $data = $decode_qc->fisikokimia[($i - 1)]->keruhan;
-            ?>
-            <div class="input-group my-3">
-                <input type="text"
-                    class="form-control rzw-input <?= session('input.keruhan_input_'.$i) ? 'is-invalid' : '' ?>"
-                    name="keruhan_input_<?= $i ?>" id="keruhan_input_<?= $i ?>" placeholder="Value <?= $i ?>"
-                    value="<?= $data ?>"
-                    style="background-color: <?= $data == null ? 'white' : ($data >= 0 && $data <= 2.0 ? 'green' : ($data >= 2.1 && $data <= 5.0 ? '#ecd700' : '#ff0000')) ?>; color: <?= $data == null ? 'black' : ($data >= 0 && $data <= 2.0 ? 'white' : ($data >= 2.1 && $data <= 5.0 ? 'black' : 'white')) ?>;"
-                    <?= $status == 0 && $details['user_id'] == $data_user['user_id'] && $data_user['name'] != 'viewers' ? '' : 'readonly' ?>>
-                <div class="input-group-prepend">
-                    <span class="rzw-icon-input" style="z-index: 5;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="icon icon-tabler icons-tabler-outline icon-tabler-cursor-text">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                            <path d="M10 12h4" />
-                            <path d="M9 4a3 3 0 0 1 3 3v10a3 3 0 0 1 -3 3" />
-                            <path d="M15 4a3 3 0 0 0 -3 3v10a3 3 0 0 0 3 3" />
-                        </svg>
-                    </span>
+            @php
+                $i = 1;
+            @endphp
+            @foreach (RZWHelper::FilterName($decode_qc, 'keruhan_input_') as $key => $item)
+                <div class="input-group my-3">
+                    <input type="text"
+                        class="form-control rzw-input"
+                        name="{{ $key }}" id="{{ $key }}" placeholder="Value {{ $i++ }}"
+                        value="{{ $item }}"
+                        style="background-color: {{ $item == null ? 'white' : ($item >= 0 && $item <= 2.0 ? 'green' : ($item >= 2.1 && $item <= 5.0 ? '#ecd700' : '#ff0000')) }}; color: {{ $item == null ? 'black' : ($item >= 0 && $item <= 2.0 ? 'white' : ($item >= 2.1 && $item <= 5.0 ? 'black' : 'white')) }};"
+                        {{ $details->status == 0 && $details->user_id == Auth::user()->id && Auth::user()->role->name != 'viewers' ? '' : 'readonly' }} >
+                    <div class="input-group-prepend">
+                        <span class="rzw-icon-input" style="z-index: 5;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                class="icon icon-tabler icons-tabler-outline icon-tabler-cursor-text">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                <path d="M10 12h4" />
+                                <path d="M9 4a3 3 0 0 1 3 3v10a3 3 0 0 1 -3 3" />
+                                <path d="M15 4a3 3 0 0 0 -3 3v10a3 3 0 0 0 3 3" />
+                            </svg>
+                        </span>
+                    </div>
                 </div>
-                <div id="validationServerUsernameFeedback" class="invalid-feedback text-start">
-                    <?= session('input.keruhan_input_'.$i) ?>
-                </div>
-            </div>
-            <?php
-                }
-            ?>
+            @endforeach
         </div>
     </div>
 
@@ -289,35 +269,30 @@
             <div class="container text-center">
                 <h3>RASA</h3>
             </div>
-            <?php
-                for ($i=1; $i <= 5; $i++) { 
-                    $data = $decode_qc->organoleptik[($i - 1)]->rasa;
-            ?>
-            <div class="input-group my-3">
-                <input type="text" class="form-control rzw-input <?= session('input.rasa_input_'.$i) ? 'is-invalid' : '' ?>"
-                    name="rasa_input_<?= $i ?>" id="rasa_input_<?= $i ?>" placeholder="Value <?= $i ?>"
-                    value="<?= $data ?>"
-                    style="background-color: <?= strpos(strtolower($data), 'normal') === 0 ? 'green' : ($data == null ? 'white' : 'red') ?>; color: <?= $data == null ? 'black' : 'white' ?>;"
-                    <?= $status == 0 && $details['user_id'] == $data_user['user_id'] && $data_user['name'] != 'viewers' ? '' : 'readonly' ?>>
-                <div class="input-group-prepend">
-                    <span class="rzw-icon-input" style="z-index: 5;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="icon icon-tabler icons-tabler-outline icon-tabler-cursor-text">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                            <path d="M10 12h4" />
-                            <path d="M9 4a3 3 0 0 1 3 3v10a3 3 0 0 1 -3 3" />
-                            <path d="M15 4a3 3 0 0 0 -3 3v10a3 3 0 0 0 3 3" />
-                        </svg>
-                    </span>
+            @php
+                $i = 1;
+            @endphp
+            @foreach (RZWHelper::FilterName($decode_qc, 'rasa_input_') as $key => $item)
+                <div class="input-group my-3">
+                    <input type="text" class="form-control rzw-input"
+                        name="{{ $key }}" id="{{ $key }}" placeholder="Value {{ $i++ }}"
+                        value="{{ $item }}"
+                        style="background-color: {{ strpos(strtolower($item), 'normal') === 0 ? 'green' : ($item == null ? 'white' : 'red') }}; color: {{ $item == null ? 'black' : 'white' }};"
+                        {{ $details->status == 0 && $details->user_id == Auth::user()->id && Auth::user()->role->name != 'viewers' ? '' : 'readonly' }} >
+                    <div class="input-group-prepend">
+                        <span class="rzw-icon-input" style="z-index: 5;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                class="icon icon-tabler icons-tabler-outline icon-tabler-cursor-text">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                <path d="M10 12h4" />
+                                <path d="M9 4a3 3 0 0 1 3 3v10a3 3 0 0 1 -3 3" />
+                                <path d="M15 4a3 3 0 0 0 -3 3v10a3 3 0 0 0 3 3" />
+                            </svg>
+                        </span>
+                    </div>
                 </div>
-                <div id="validationServerUsernameFeedback" class="invalid-feedback text-start">
-                    <?= session('input.rasa_input_'.$i) ?>
-                </div>
-            </div>
-            <?php
-                }
-            ?>
+            @endforeach
         </div>
     </div>
 
@@ -326,36 +301,31 @@
             <div class="container text-center">
                 <h3>AROMA</h3>
             </div>
-            <?php
-                for ($i=1; $i <= 5; $i++) { 
-                    $data = $decode_qc->organoleptik[($i - 1)]->aroma;
-            ?>
-            <div class="input-group my-3">
-                <input type="text"
-                    class="form-control rzw-input <?= session('input.aroma_input_'.$i) ? 'is-invalid' : '' ?>"
-                    name="aroma_input_<?= $i ?>" id="aroma_input_<?= $i ?>" placeholder="Value <?= $i ?>"
-                    value="<?= $data ?>"
-                    style="background-color: <?= strpos(strtolower($data), 'normal') === 0 ? 'green' : ($data == null ? 'white' : 'red') ?>; color: <?= $data == null ? 'black' : 'white' ?>;"
-                    <?= $status == 0 && $details['user_id'] == $data_user['user_id'] && $data_user['name'] != 'viewers' ? '' : 'readonly' ?>>
-                <div class="input-group-prepend">
-                    <span class="rzw-icon-input" style="z-index: 5;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="icon icon-tabler icons-tabler-outline icon-tabler-cursor-text">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                            <path d="M10 12h4" />
-                            <path d="M9 4a3 3 0 0 1 3 3v10a3 3 0 0 1 -3 3" />
-                            <path d="M15 4a3 3 0 0 0 -3 3v10a3 3 0 0 0 3 3" />
-                        </svg>
-                    </span>
+            @php
+                $i = 1;
+            @endphp
+            @foreach (RZWHelper::FilterName($decode_qc, 'aroma_input_') as $key => $item)
+                <div class="input-group my-3">
+                    <input type="text"
+                        class="form-control rzw-input"
+                        name="{{ $key }}" id="{{ $key }}" placeholder="Value {{ $i++ }}"
+                        value="{{ $item }}"
+                        style="background-color: {{ strpos(strtolower($item), 'normal') === 0 ? 'green' : ($item == null ? 'white' : 'red') }}; color: {{ $item == null ? 'black' : 'white' }};"
+                        {{ $details->status == 0 && $details->user_id == Auth::user()->id && Auth::user()->role->name != 'viewers' ? '' : 'readonly' }} >
+                    <div class="input-group-prepend">
+                        <span class="rzw-icon-input" style="z-index: 5;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                class="icon icon-tabler icons-tabler-outline icon-tabler-cursor-text">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                <path d="M10 12h4" />
+                                <path d="M9 4a3 3 0 0 1 3 3v10a3 3 0 0 1 -3 3" />
+                                <path d="M15 4a3 3 0 0 0 -3 3v10a3 3 0 0 0 3 3" />
+                            </svg>
+                        </span>
+                    </div>
                 </div>
-                <div id="validationServerUsernameFeedback" class="invalid-feedback text-start">
-                    <?= session('input.aroma_input_'.$i) ?>
-                </div>
-            </div>
-            <?php
-                }
-            ?>
+            @endforeach
         </div>
     </div>
 
@@ -364,36 +334,31 @@
             <div class="container text-center">
                 <h3>WARNA</h3>
             </div>
-            <?php
-                for ($i=1; $i <= 5; $i++) { 
-                    $data = $decode_qc->organoleptik[($i - 1)]->warna;
-            ?>
-            <div class="input-group my-3">
-                <input type="text"
-                    class="form-control rzw-input <?= session('input.warna_input_'.$i) ? 'is-invalid' : '' ?>"
-                    name="warna_input_<?= $i ?>" id="warna_input_<?= $i ?>" placeholder="Value <?= $i ?>"
-                    value="<?= $data ?>"
-                    style="background-color: <?= strpos(strtolower($data), 'normal') === 0 ? 'green' : ($data == null ? 'white' : 'red') ?>; color: <?= $data == null ? 'black' : 'white' ?>;"
-                    <?= $status == 0 && $details['user_id'] == $data_user['user_id'] && $data_user['name'] != 'viewers' ? '' : 'readonly' ?>>
-                <div class="input-group-prepend">
-                    <span class="rzw-icon-input" style="z-index: 5;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="icon icon-tabler icons-tabler-outline icon-tabler-cursor-text">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                            <path d="M10 12h4" />
-                            <path d="M9 4a3 3 0 0 1 3 3v10a3 3 0 0 1 -3 3" />
-                            <path d="M15 4a3 3 0 0 0 -3 3v10a3 3 0 0 0 3 3" />
-                        </svg>
-                    </span>
+            @php
+                $i = 1;
+            @endphp
+            @foreach (RZWHelper::FilterName($decode_qc, 'warna_input_') as $key => $item)
+                <div class="input-group my-3">
+                    <input type="text"
+                        class="form-control rzw-input"
+                        name="{{ $key }}" id="{{ $key }}" placeholder="Value {{ $i++ }}"
+                        value="{{ $item }}"
+                        style="background-color: {{ strpos(strtolower($item), 'normal') === 0 ? 'green' : ($item == null ? 'white' : 'red') }}; color: {{ $item == null ? 'black' : 'white' }};"
+                        {{ $details->status == 0 && $details->user_id == Auth::user()->id && Auth::user()->role->name != 'viewers' ? '' : 'readonly' }} >
+                    <div class="input-group-prepend">
+                        <span class="rzw-icon-input" style="z-index: 5;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                class="icon icon-tabler icons-tabler-outline icon-tabler-cursor-text">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                <path d="M10 12h4" />
+                                <path d="M9 4a3 3 0 0 1 3 3v10a3 3 0 0 1 -3 3" />
+                                <path d="M15 4a3 3 0 0 0 -3 3v10a3 3 0 0 0 3 3" />
+                            </svg>
+                        </span>
+                    </div>
                 </div>
-                <div id="validationServerUsernameFeedback" class="invalid-feedback text-start">
-                    <?= session('input.warna_input_'.$i) ?>
-                </div>
-            </div>
-            <?php
-                }
-            ?>
+            @endforeach
         </div>
     </div>
 
@@ -407,36 +372,31 @@
             <div class="container text-center">
                 <h3>ALT</h3>
             </div>
-            <?php
-                for ($i=1; $i <= 3; $i++) { 
-                    $data = $decode_qc->mikrobiologi[($i - 1)]->alt;
-            ?>
-            <div class="input-group my-3">
-                <input type="text"
-                    class="form-control rzw-input <?= session('input.alt_input_'.$i) ? 'is-invalid' : '' ?>"
-                    name="alt_input_<?= $i ?>" id="alt_input_<?= $i ?>" placeholder="Value <?= $i ?>"
-                    value="<?= $data ?>"
-                    style="background-color: <?= $data == null ? 'white' : ($data >= 0 && $data <= 1.0 ? 'green' : ($data >= 1.1 && $data <= 1.5 ? '#ecd700' : '#ff0000')) ?>; color: <?= $data == null ? 'black' : ($data >= 0 && $data <= 1.0 ? 'white' : ($data >= 1.1 && $data <= 1.5 ? 'black' : 'white')) ?>;"
-                    <?= $status == 0 && $details['user_id'] == $data_user['user_id'] && $data_user['name'] != 'viewers' ? '' : 'readonly' ?>>
-                <div class="input-group-prepend">
-                    <span class="rzw-icon-input" style="z-index: 5;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="icon icon-tabler icons-tabler-outline icon-tabler-cursor-text">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                            <path d="M10 12h4" />
-                            <path d="M9 4a3 3 0 0 1 3 3v10a3 3 0 0 1 -3 3" />
-                            <path d="M15 4a3 3 0 0 0 -3 3v10a3 3 0 0 0 3 3" />
-                        </svg>
-                    </span>
+            @php
+                $i = 1;
+            @endphp
+            @foreach (RZWHelper::FilterName($decode_qc, 'alt_input_') as $key => $item)
+                <div class="input-group my-3">
+                    <input type="text"
+                        class="form-control rzw-input"
+                        name="{{ $key }}" id="{{ $key }}" placeholder="Value {{ $i++ }}"
+                        value="{{ $item }}"
+                        style="background-color: {{ $item == null ? 'white' : ($item >= 0 && $item <= 1.0 ? 'green' : ($item >= 1.1 && $item <= 1.5 ? '#ecd700' : '#ff0000')) }}; color: {{ $item == null ? 'black' : ($item >= 0 && $item <= 1.0 ? 'white' : ($item >= 1.1 && $item <= 1.5 ? 'black' : 'white')) }};"
+                        {{ $details->status == 0 && $details->user_id == Auth::user()->id && Auth::user()->role->name != 'viewers' ? '' : 'readonly' }} >
+                    <div class="input-group-prepend">
+                        <span class="rzw-icon-input" style="z-index: 5;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                class="icon icon-tabler icons-tabler-outline icon-tabler-cursor-text">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                <path d="M10 12h4" />
+                                <path d="M9 4a3 3 0 0 1 3 3v10a3 3 0 0 1 -3 3" />
+                                <path d="M15 4a3 3 0 0 0 -3 3v10a3 3 0 0 0 3 3" />
+                            </svg>
+                        </span>
+                    </div>
                 </div>
-                <div id="validationServerUsernameFeedback" class="invalid-feedback text-start">
-                    <?= session('input.alt_input_'.$i) ?>
-                </div>
-            </div>
-            <?php
-                }
-            ?>
+            @endforeach
         </div>
     </div>
 
@@ -445,39 +405,35 @@
             <div class="container text-center">
                 <h3>EC</h3>
             </div>
-            <?php
-                for ($i=1; $i <= 2; $i++) { 
-                    $data = $decode_qc->mikrobiologi[($i - 1)]->ec;
-            ?>
-            <div class="input-group my-3">
-                <input type="text"
-                    class="form-control rzw-input <?= session('input.ec_input_'.$i) ? 'is-invalid' : '' ?>"
-                    name="ec_input_<?= $i ?>" id="ec_input_<?= $i ?>" placeholder="Value <?= $i ?>" value="<?= $data ?>"
-                    style="background-color: <?= $data == null ? 'white' : ($data >= 0 && $data <= 1.0 ? 'green' : ($data >= 1.1 && $data <= 1.5 ? '#ecd700' : '#ff0000')) ?>; color: <?= $data == null ? 'black' : ($data >= 0 && $data <= 1.0 ? 'white' : ($data >= 1.1 && $data <= 1.5 ? 'black' : 'white')) ?>;"
-                    <?= $status == 0 && $details['user_id'] == $data_user['user_id'] && $data_user['name'] != 'viewers' ? '' : 'readonly' ?>>
-                <div class="input-group-prepend">
-                    <span class="rzw-icon-input" style="z-index: 5;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="icon icon-tabler icons-tabler-outline icon-tabler-cursor-text">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                            <path d="M10 12h4" />
-                            <path d="M9 4a3 3 0 0 1 3 3v10a3 3 0 0 1 -3 3" />
-                            <path d="M15 4a3 3 0 0 0 -3 3v10a3 3 0 0 0 3 3" />
-                        </svg>
-                    </span>
+            @php
+                $i = 1;
+            @endphp
+            @foreach (RZWHelper::FilterName($decode_qc, 'ec_input_') as $key => $item)
+                <div class="input-group my-3">
+                    <input type="text"
+                        class="form-control rzw-input"
+                        name="{{ $key }}" id="{{ $key }}" placeholder="Value {{ $i++ }}"
+                        value="{{ $item }}"
+                        style="background-color: {{ $item == null ? 'white' : ($item >= 0 && $item <= 1.0 ? 'green' : ($item >= 1.1 && $item <= 1.5 ? '#ecd700' : '#ff0000')) }}; color: {{ $item == null ? 'black' : ($item >= 0 && $item <= 1.0 ? 'white' : ($item >= 1.1 && $item <= 1.5 ? 'black' : 'white')) }};"
+                        {{ $details->status == 0 && $details->user_id == Auth::user()->id && Auth::user()->role->name != 'viewers' ? '' : 'readonly' }} >
+                    <div class="input-group-prepend">
+                        <span class="rzw-icon-input" style="z-index: 5;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                class="icon icon-tabler icons-tabler-outline icon-tabler-cursor-text">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                <path d="M10 12h4" />
+                                <path d="M9 4a3 3 0 0 1 3 3v10a3 3 0 0 1 -3 3" />
+                                <path d="M15 4a3 3 0 0 0 -3 3v10a3 3 0 0 0 3 3" />
+                            </svg>
+                        </span>
+                    </div>
                 </div>
-                <div id="validationServerUsernameFeedback" class="invalid-feedback text-start">
-                    <?= session('input.ec_input_'.$i) ?>
-                </div>
-            </div>
-            <?php
-                }
-            ?>
+            @endforeach
         </div>
     </div>
 
-    <?php if($status == 0 && $details['user_id'] == $data_user['user_id'] && $data_user['name'] != 'viewers'): ?>
+    @if($details->status == 0 && ($details->user_id == Auth::user()->id || Auth::user()->role->name == 'manager'))
         <div class="rzw-box-content">
             <div class="row">
                 <div class="col-12">
@@ -485,29 +441,29 @@
                 </div>
             </div>
         </div>
-    <?php endif; ?>
+    @endif
 </form>
 
-<?php if($status == 0 && $data_user['name'] == "manager"): ?>
+@if($details->status == 0 && Auth::user()->role->name == "manager")
     <div class="rzw-box-content">
         <div class="row">
             <div class="col-6">
-                <a class="btn btn-primary w-100" href="<?= base_url('dashboard/qc_air_baku/reject/'.$id) ?>"
+                <a class="btn btn-primary w-100" href="{{ url('qc_air_baku/reject/'.$details->id) }}"
                     style="background-color: red; border: none; border-radius: 8px; color: black; color: white;">Reject</a>
             </div>
             <div class="col-6">
-                <button class="btn btn-primary w-100" onclick="deleteData(<?= $id ?>)"
+                <button class="btn btn-primary w-100" onclick="deleteData({{ $details->id }})"
                     style="background-color: #f3e100; border: none; border-radius: 8px; color: black;">Hapus</button>
             </div>
         </div>
         <div class="row mt-3">
             <div class="col-12">
-                <a class="btn btn-primary w-100" href="<?= base_url('dashboard/qc_air_baku/approve/'.$id) ?>"
+                <a class="btn btn-primary w-100" href="{{ url('qc_air_baku/approve/'.$details->id) }}"
                     style="background-color: green; border: none; border-radius: 8px;">Approve</a>
             </div>
         </div>
     </div>
-<?php endif; ?>
+@endif
 
 
 <script>
@@ -520,9 +476,9 @@
             confirmButtonColor: "#3085d6",
             cancelButtonColor: "#d33",
             confirmButtonText: "Ya, Hapus Data!"
-            }).then((result) => {
+        }).then((result) => {
             if (result.isConfirmed) {
-                window.location.href = "<?= base_url('dashboard/qc_air_baku/delete/') ?>" + id;
+                window.location.href = "{{ url('qc_air_baku/delete') }}" + "/" + id;
             }
         });
     }

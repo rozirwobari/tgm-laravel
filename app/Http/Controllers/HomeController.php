@@ -49,8 +49,11 @@ class HomeController extends Controller
 
             if ($request->hasFile('foto_profile')) {
                 $file = $request->file('foto_profile');
-                $filename = $file->getClientOriginalName();
-                $file->move('asset/img/', $filename);
+                $filename = uniqid() . '_' . time() . '.' . $file->getClientOriginalExtension();
+                if(file_exists($user->img)) {
+                    unlink($user->img);
+                }
+                $file->move('asset/img/', $filename); 
                 $user->img = 'asset/img/'.$filename;
                 $user->save();
             }
