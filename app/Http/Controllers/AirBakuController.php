@@ -10,9 +10,21 @@ use App\Helpers\RZWHelper;
 use Google\Client;
 use Google\Service\Sheets;
 use Google\Service\Sheets\ValueRange;
+use Google\Service\Sheets\BatchUpdateSpreadsheetRequest;
+use Google\Service\Sheets\BatchUpdateValuesRequest;
+
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AirBakuController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->sheetId = "1GLCOL_RvBhWAB4g6hPlcBDiKmu3-iyHUMXYOkH9jfRM";
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -117,30 +129,26 @@ class AirBakuController extends Controller
             $service = new Sheets($client);
 
             // Dapatkan spreadsheet dan cari template sheet
-            $spreadsheet = $service->spreadsheets->get(env('GOOGLE_SHEET_ID'));
+            $spreadsheet = $service->spreadsheets->get($this->sheetId);
             $sheets = $spreadsheet->getSheets();
             $templateSheetId = null;
 
             foreach ($sheets as $sheet) {
-                if ($sheet->getProperties()->getTitle() === 'template') {
+                if ($sheet->getProperties()->getTitle() === 'template_baku') {
                     $templateSheetId = $sheet->getProperties()->getSheetId();
                     break;
                 }
             }
-
             if ($templateSheetId === null) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Sheet 'template' tidak ditemukan."
-                ], Response::HTTP_NOT_FOUND);
+                throw new \Exception("Sheet 'template_baku' tidak ditemukan.");
             }
 
             // Buat request untuk duplikasi sheet
-            $duplicateRequest = new Request([
+            $duplicateRequest = new \Google\Service\Sheets\Request([
                 'duplicateSheet' => [
                     'sourceSheetId' => $templateSheetId,
                     'insertSheetIndex' => 0,
-                    'newSheetName' => 'temp',
+                    'newSheetName' => $sheetName,
                 ],
             ]);
 
@@ -148,38 +156,11 @@ class AirBakuController extends Controller
                 'requests' => [$duplicateRequest],
             ]);
 
-            // Eksekusi duplikasi
-            $response = $service->spreadsheets->batchUpdate(env('GOOGLE_SHEET_ID'), $body);
+            $response = $service->spreadsheets->batchUpdate($this->sheetId, $body);
             $sheetId = $response->getReplies()[0]->getDuplicateSheet()->getProperties()->getSheetId();
 
-            // Update nama sheet yang baru
-            $updateRequest = new Request([
-                'updateSheetProperties' => [
-                    'properties' => [
-                        'sheetId' => $sheetId,
-                        'title' => $sheetName,
-                    ],
-                    'fields' => 'title',
-                ],
-            ]);
-
-            $updateBody = new BatchUpdateSpreadsheetRequest([
-                'requests' => [$updateRequest],
-            ]);
-
-            $service->spreadsheets->batchUpdate(env('GOOGLE_SHEET_ID'), $updateBody);
-
-            return response()->json([
-                'success' => true,
-                'message' => "Sheet berhasil diduplikasi dengan nama '$sheetName'",
-                'sheetId' => $sheetId
-            ], Response::HTTP_OK);
-
         } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            throw $e;
         }
     }
 
@@ -187,23 +168,16 @@ class AirBakuController extends Controller
     {
         try {
             $service = new Sheets($client);
-            $response = $service->spreadsheets->get(env('GOOGLE_SHEET_ID'));
+            $response = $service->spreadsheets->get($this->sheetId);
             $sheets = $response->getSheets();
-            
             foreach ($sheets as $sheet) {
                 if ($sheet->getProperties()->getTitle() == $sheetName) {
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Sheet ditemukan'
-                    ]);
+                    return true;
                 }
             }
-            $this->DuplicateSheet($client, $sheetName);
+            return false;
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-            ], 500);
+            throw $e;
         }
     }
 
@@ -212,22 +186,40 @@ class AirBakuController extends Controller
         try {
             $client->setApplicationName('Google Sheets API');
             $service = new Sheets($client);
-            $response = $service->spreadsheets_values->get(env('GOOGLE_SHEET_ID'), $range);
+            
+            // Ambil data mulai dari A5
+            $response = $service->spreadsheets_values->get($this->sheetId, $sheetName.'!A5:A');
             $values = $response->getValues();
-
-            return $values;
-
+            
+            // Mulai pengecekan dari A5
+            $rowNumber = 5;  // Mulai dari baris 5
+            
+            // Jika data kosong dari A5, langsung return A5
+            if (empty($values)) {
+                return 5;
+            }
+            
+            // Cek satu per satu sel mulai dari A5
+            foreach ($values as $row) {
+                if (!isset($row[0]) || empty($row[0]) || trim($row[0]) === '') {
+                    return 'A' . $rowNumber;
+                }
+                $rowNumber++;
+            }
+            
+            // Jika semua terisi, return baris setelah data terakhir
+            return (count($values) + 5);
+    
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error checking sheet: ' . $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            throw $e;
         }
     }
 
     private function updateSheetCell($client, $range, $data)
     {
         try {
+            $client->setApplicationName('Google Sheets API');
+            $service = new Sheets($client);
             $body = new ValueRange([
                 'values' => $data
             ]);
@@ -235,36 +227,68 @@ class AirBakuController extends Controller
                 'valueInputOption' => 'RAW'
             ];
             $result = $service->spreadsheets_values->update(
-                env('GOOGLE_SHEET_ID'), 
+                $this->sheetId, 
                 $range, 
                 $body, 
                 $params
             );
 
         } catch (\Exception $e) {
-            throw new \App\Exceptions\GoogleSheetException($e->getMessage());
+            throw $e;
         }
     }
 
     private function getColumnRange(int $start = 1, int $end = 39): array 
     {
-        return array_map(
-            fn($i) => chr(64 + $i),
-            range($start, $end)
-        );
+        $columns = [];
+        
+        for ($i = $start; $i <= $end; $i++) {
+            $columns[] = $this->numberToColumn($i);
+        }
+        
+        return $columns;
     }
 
-    private function updateDataColumns(object $service, string $sheetName, int $index, object $data)
+    private function numberToColumn($n): string 
+    {
+        $result = '';
+        
+        // Selama n lebih besar dari 0
+        while ($n > 0) {
+            $n--;
+            $result = chr(65 + ($n % 26)) . $result;
+            $n = floor($n / 26);
+        }
+        
+        return $result;
+    }
+
+    private function ConvertNumber($value)
+    {
+        if (is_string($value)) {
+            $cleanValue = str_replace(',', '.', $value);
+            if (is_numeric($cleanValue)) {
+                return (float)$cleanValue;
+            }
+        }
+        return is_numeric($value) ? (float)$value : $value;
+    }
+
+    private function updateDataColumns(object $client, string $sheetName, int $index, object $datas)
     {
         try {
+            $client->setApplicationName('Google Sheets API');
+            $service = new Sheets($client);
             $columns = $this->getColumnRange(5, 39);
             $valueRanges = [];
             
+            $array = (array) $datas;
+            $data = array_values($array);
             foreach ($columns as $key => $column) {
                 $valueRanges[] = new ValueRange([
                     'range' => "{$sheetName}!{$column}{$index}",
                     'values' => [[
-                        $data[$key] ?? null
+                        $this->ConvertNumber($data[$key]) ?? null
                     ]]
                 ]);
             }
@@ -279,7 +303,7 @@ class AirBakuController extends Controller
                 $body
             );
         } catch (\Exception $e) {
-            throw new \App\Exceptions\GoogleSheetException($e->getMessage());
+            throw $e;
         }
     }
 
@@ -289,31 +313,23 @@ class AirBakuController extends Controller
     public function approve(string $id)
     {
         $data = QcAirBaku::find($id);
-        // $data->status = 1;
-        // $data->save();
-
         try {
-            $qcData = QcAirBaku::with('user')->findOrFail($id);
             $parsedData = json_decode($data->data);
-            
             $service = $this->getGoogleClient();
-            $sheetName = date('F Y', time());
-            
-            // Cek dan buat sheet jika belum ada
-            $this->checkOrCreateSheet($service, $sheetName);
-            
-            // Cari baris kosong
+            $sheetName = "QC Air Baku ".date('F Y', time());
+            $sheeted = $this->checkOrCreateSheet($service, $sheetName);
+            if (!$sheeted) {
+                $this->DuplicateSheet($service, $sheetName);
+            }
             $rowIndex = $this->findEmptyRow($service, $sheetName);
             $rowNumber = $rowIndex - 4;
-
-            // Update informasi dasar
             $this->updateSheetCell(
                 $service,
                 "$sheetName!A$rowIndex",
                 [
                     [
                         $rowNumber, 
-                        $data->updated_at, 
+                        RZWHelper::formatTanggalIndonesia($data->updated_at), 
                         $data->shift, 
                         $data->user->name
                     ]
@@ -329,16 +345,15 @@ class AirBakuController extends Controller
                 ]
             );
             
-            // Update data fisikokimia
             $this->updateDataColumns(
                 $service, 
                 $sheetName, 
                 $rowIndex, 
                 $parsedData,
             );
-            
-            // Update status di database
-            $qcData->update(['status' => 1]);
+
+            $data->status = 1;
+            $data->save();
             
             return redirect()
                 ->route('qc_air_baku')
@@ -349,15 +364,7 @@ class AirBakuController extends Controller
                 ]);
                 
         } catch (\Exception $e) {
-            report($e); // Log error
-            
-            return redirect()
-                ->route('qc_air_baku')
-                ->with('alert', [
-                    'type' => 'error',
-                    'message' => 'Terjadi kesalahan saat memproses data.',
-                    'title' => 'Error'
-                ]);
+            throw $e;
         }
     }
 
@@ -388,5 +395,57 @@ class AirBakuController extends Controller
             'message' => 'Data berhasil dihapus',
             'title' => 'Berhasil'
         ]);
+    }
+
+    public function export()
+    {
+        $templatePath = storage_path('app/private/sheet/qc_air_baku.xlsx');
+        $spreadsheet = IOFactory::load($templatePath);
+
+        $templateSheet = $spreadsheet->getSheetByName('template_baku');
+        if (!$templateSheet) {
+            return response()->json(['error' => 'Worksheet "template_baku" tidak ditemukan'], 404);
+        }
+
+        $duplicatedSheet = clone $templateSheet;
+        $WorkSheetName = 'QC Air Baku '.date('F Y', time());
+        $duplicatedSheet->setTitle($WorkSheetName);
+        $spreadsheet->addSheet($duplicatedSheet);
+
+        foreach ($spreadsheet->getAllSheets() as $index => $sheet) {
+            if ($WorkSheetName !== $sheet->getTitle()) {
+                $spreadsheet->removeSheetByIndex(0);
+            }
+        }
+        $datas = QcAirBaku::with('user')->get()->toArray();
+
+        $startRow = 5;
+        $columns = $this->getColumnRange(5, 42);
+        $colomListed = [];
+        foreach ($columns as $key => $column) {
+            $colomListed[] = $column;
+        }
+
+        $listValues = [];
+        foreach ($datas as $key => $value) {
+            $duplicatedSheet->setCellValue("A{$startRow}", ($startRow - 4));
+            $duplicatedSheet->setCellValue("B{$startRow}", RZWHelper::formatTanggalIndonesia($value['created_at']));
+            $duplicatedSheet->setCellValue("C{$startRow}", $value['shift']);
+            $duplicatedSheet->setCellValue("D{$startRow}", $value['user']['name']);
+            $duplicatedSheet->setCellValue("AN{$startRow}", "Approve");
+            
+            $ColomIndex = 0;
+            foreach (json_decode($value['data']) as $value) {
+                $duplicatedSheet->setCellValue("{$colomListed[$ColomIndex]}{$startRow}", $this->ConvertNumber($value));
+                $ColomIndex++;
+            }
+            $startRow++;
+        }
+
+        $fileName = 'qc_air_baku_'.date('Y-m-d_His').'.xlsx';
+        $tempFilePath = public_path("asset/excel/{$fileName}");
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save($tempFilePath);
+        return response()->download($tempFilePath)->deleteFileAfterSend();
     }
 }

@@ -59,10 +59,10 @@
                     style="background-color: #00b4cd; border: none;">Login</button>
             </form>
             <div class="text-center mt-2" style="margin-bottom: -20px;">
-                <a href="<?= url('register') ?>"
+                <a href="{{ route('register') }}"
                     style="color: #000; text-decoration: none; font-weight: 350; font-size: 15px;">Belum
                     Memiliki Akun</a> |
-                <a href="<?= url('lupa-password') ?>"
+                <a href="{{ route('password.request') }}"
                     style="color: #000; text-decoration: none; font-weight: 350; font-size: 15px;">Lupa Password</a>
             </div>
     </div>
