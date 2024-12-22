@@ -298,7 +298,7 @@ class HomeController extends Controller
         }
 
         $fileName = 'qc_air_all_'.date('Y-m-d_His').'.xlsx';
-        $tempFilePath = public_path("asset/excel/{$fileName}");
+        $tempFilePath = "asset/excel/{$fileName}";
         $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
         $writer->save($tempFilePath);
         return response()->download($tempFilePath)->deleteFileAfterSend();
