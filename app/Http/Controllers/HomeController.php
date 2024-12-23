@@ -297,11 +297,20 @@ class HomeController extends Controller
             }
         }
 
-        $fileName = 'qc_air_all_'.date('Y-m-d_His').'.xlsx';
-        $tempFilePath = "asset/excel/{$fileName}";
-        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $writer->save($tempFilePath);
-        response()->download($tempFilePath)->deleteFileAfterSend();
-        return exit;
+        // $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        // $fileName = 'qc_air_all_'.date('Y-m-d_His').'.xlsx';
+        // $tempFilePath = "asset/excel/{$fileName}";
+        // $writer->save($tempFilePath);
+        // return response()->download($tempFilePath)->deleteFileAfterSend();
+
+
+
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $filename = 'qc_air_' . date('Y-m-d') . '.xlsx';
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        $writer->save('php://output');
+        exit;
     }
 }
