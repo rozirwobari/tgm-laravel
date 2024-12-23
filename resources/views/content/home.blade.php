@@ -40,18 +40,18 @@
         <div class="rzw-box-content">
             <div class="card-body">
                 <div class="row">
-                    <div class="col-6">
+                    <div class="col-12">
                         <a href="{{ url('manage_user') }}" class="btn btn-primary w-100 rzw-btn-content"
                             style="background-color: #dad300; color: #000;">
                             Manage Akun
                         </a>
                     </div>
-                    <div class="col-6">
+                    {{-- <div class="col-6">
                         <a href="{{ url('export_all_excel') }}" class="btn btn-primary w-100 rzw-btn-content"
                             style="background-color: green;">
                             Export All Excel
                         </a>
-                    </div>
+                    </div> --}}
                 </div>
             </div>
         </div>
