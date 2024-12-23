@@ -301,7 +301,7 @@ class HomeController extends Controller
         $tempFilePath = "asset/excel/{$fileName}";
         $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
         $writer->save($tempFilePath);
-        exit;
-        return response()->download($tempFilePath)->deleteFileAfterSend();
+        response()->download($tempFilePath)->deleteFileAfterSend();
+        return exit;
     }
 }
