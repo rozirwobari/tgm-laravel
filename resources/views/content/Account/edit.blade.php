@@ -139,11 +139,11 @@
 
         <div class="rzw-box-content">
             <div class="row">
-                <div class="col-<?= session()->get('id') != $account['id'] ? '6' : '12' ?>">
+                <div class="col-{{ Auth::user()->id != $account['id'] ? '6' : '12' }}">
                     <button type="submit" class="btn btn-primary w-100 rzw-btn-content">Simpan</button>
                 </div>
-                @if(session()->get('id') != $account['id'])
-                <div class="col-6">
+                @if(Auth::user()->id != $account['id'])
+                <div class="col-{{ Auth::user()->id != $account['id'] ? '6' : '12' }}">
                     <a href="javascript:void(0)" class="btn btn-primary w-100"
                         onclick="DeleteUser({{ $account['id'] }})"
                         style="background-color: #f3e100; border: none; border-radius: 8px; color: black;">Hapus</a>
