@@ -459,8 +459,11 @@
         <div class="rzw-box-content">
             <div class="row">
                 <div class="col-6">
-                    <a class="btn btn-primary w-100" href="{{ url('qc_air_botol/reject/' . $details->id) }}"
-                        style="background-color: red; border: none; border-radius: 8px; color: black; color: white;">Reject</a>
+                    <a href="javascript:void(0)" class="btn btn-primary w-100 rzw-btn-content"
+                        onclick="LoadingEvent('{{ url('/qc_air_botol/reject/' . $details->id) }}', 'Reject')"
+                        style="background-color: red; border: none; border-radius: 8px; color: black; color: white;">
+                        Reject
+                    </a>
                 </div>
                 <div class="col-6">
                     <button class="btn btn-primary w-100" onclick="deleteData({{ $details->id }})"
@@ -469,8 +472,11 @@
             </div>
             <div class="row mt-3">
                 <div class="col-12">
-                    <a class="btn btn-primary w-100" href="{{ url('qc_air_botol/approve/' . $details->id) }}"
-                        style="background-color: green; border: none; border-radius: 8px;">Approve</a>
+                    <a href="javascript:void(0)" class="btn btn-primary w-100 rzw-btn-content"
+                        onclick="LoadingEvent('{{ url('/qc_air_botol/approve/' . $details->id) }}', 'Approve')"
+                        style="background-color: green;">
+                        Approve
+                    </a>
                 </div>
             </div>
         </div>
@@ -492,6 +498,32 @@
                     window.location.href = "{{ url('qc_air_botol/delete') }}" + "/" + id;
                 }
             });
+        }
+    </script>
+@endsection
+
+
+@section('js')
+    <script>
+        function loading(text) {
+            Swal.fire({
+                title: `${text}...`,
+                html: `
+                    <div class="custom-loader">
+                        <div class="spinner"></div>
+                    </div>
+                `,
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                customClass: {
+                    popup: 'custom-popup'
+                }
+            });
+        }
+
+        function LoadingEvent(exportUrl, text) {
+            loading(text);
+            window.location.href = exportUrl;
         }
     </script>
 @endsection

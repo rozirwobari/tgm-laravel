@@ -251,7 +251,7 @@
     </div>
 
     <div class="rzw-box-content">
-        <button type="submit" class="btn btn-primary w-100"
+        <button type="submit" class="btn btn-primary w-100 rzw-submit-loading"
             style="background-color: #00b4cd; border: none; border-radius: 8px;">Submit</button>
     </div>
 </form>

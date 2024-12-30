@@ -22,7 +22,7 @@ class AirCupController extends Controller
 
     public function __construct()
     {
-        $this->sheetId = "1GLCOL_RvBhWAB4g6hPlcBDiKmu3-iyHUMXYOkH9jfRM";
+        $this->sheetId = "1xnUUjW_F0Z0RwAtKU7fWao4KIk9DVJhaueGwx-Z9adg";
     }
 
     /**
@@ -188,27 +188,27 @@ class AirCupController extends Controller
             $service = new Sheets($client);
             
             // Ambil data mulai dari A5
-            $response = $service->spreadsheets_values->get($this->sheetId, $sheetName.'!A5:A');
+            $response = $service->spreadsheets_values->get($this->sheetId, $sheetName.'!G7:G');
             $values = $response->getValues();
             
             // Mulai pengecekan dari A5
-            $rowNumber = 5;  // Mulai dari baris 5
+            $rowNumber = 7;  // Mulai dari baris 5
             
             // Jika data kosong dari A5, langsung return A5
             if (empty($values)) {
-                return 5;
+                return $rowNumber;
             }
             
             // Cek satu per satu sel mulai dari A5
             foreach ($values as $row) {
                 if (!isset($row[0]) || empty($row[0]) || trim($row[0]) === '') {
-                    return 'A' . $rowNumber;
+                    return $rowNumber;
                 }
                 $rowNumber++;
             }
             
             // Jika semua terisi, return baris setelah data terakhir
-            return (count($values) + 5);
+            return (count($values) + 7);
     
         } catch (\Exception $e) {
             throw $e;
@@ -322,7 +322,7 @@ class AirCupController extends Controller
                 $this->DuplicateSheet($service, $sheetName);
             }
             $rowIndex = $this->findEmptyRow($service, $sheetName);
-            $rowNumber = $rowIndex - 4;
+            $rowNumber = $rowIndex - 6;
             $this->updateSheetCell(
                 $service,
                 "$sheetName!A$rowIndex",
@@ -339,7 +339,7 @@ class AirCupController extends Controller
             // Update status approval
             $this->updateSheetCell(
                 $service,
-                "$sheetName!AN$rowIndex",
+                "$sheetName!AT$rowIndex",
                 [
                     ['Approval']
                 ]
