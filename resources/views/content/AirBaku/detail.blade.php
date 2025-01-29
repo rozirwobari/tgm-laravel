@@ -458,17 +458,17 @@
     @if ($details->status == 0 && Auth::user()->role->name == 'manager')
         <div class="rzw-box-content">
             <div class="row">
-                <div class="col-6">
+                <div class="col-12">
                     <a href="javascript:void(0)" class="btn btn-primary w-100 rzw-btn-content"
                         onclick="LoadingEvent('{{ url('/qc_air_baku/reject/' . $details->id) }}', 'Reject')"
                         style="background-color: red; border: none; border-radius: 8px; color: black; color: white;">
                         Reject
                     </a>
                 </div>
-                <div class="col-6">
+                {{-- <div class="col-6">
                     <button class="btn btn-primary w-100" onclick="deleteData({{ $details->id }})"
                         style="background-color: #f3e100; border: none; border-radius: 8px; color: black;">Hapus</button>
-                </div>
+                </div> --}}
             </div>
             <div class="row mt-3">
                 <div class="col-12">
